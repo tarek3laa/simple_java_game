@@ -2,9 +2,13 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static java.lang.Math.abs;
 
 
 public class GamePanel extends JPanel implements Runnable, KeyListener {
@@ -17,10 +21,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     List<Position<Integer, Integer>> minePosition; // list of mine position
     Shape shape, corner1, corner2, corner3, corner4;
 
+
     enum Direction {NON, LEFT, RIGHT, UP, DOWN}
 
     private Direction directions = Direction.NON;
-    int x_axis = 25, y_axis = 25; // position of shape
+    int x_axis = 200, y_axis = 200; // position of shape
 
     public GamePanel(int width, int height) {
 
@@ -35,10 +40,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
 
-
-
     /**
-     *  this method called while game is running
+     * this method called while game is running
+     *
      * @param graphics
      */
     @Override
@@ -48,7 +52,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         graphics.fillRect(0, 0, width, height); // fill screen with white color
 
         graphics.setColor(Color.LIGHT_GRAY); // change color LIGHT_GRAY
-        for (int i = 0; i < width ; i++) { // draw vertical lines
+        for (int i = 0; i < width; i++) { // draw vertical lines
             graphics.drawLine(i * 30, 0, i * 30, height);
         }
         for (int i = 0; i < height / 10; i++) { // draw horizontal lines
@@ -76,6 +80,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
     /**
      * called every time when user clicked any key
+     *
      * @param e KeyEvent
      */
     @Override
@@ -103,6 +108,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     public void keyReleased(KeyEvent e) {
 
     }
+
     // called while thread is running
     @Override
     public void run() {
@@ -114,10 +120,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     /**
-     *  check witch key is clicked
-     *  ,redraw the shape with new position
-     *  and check if the position of this shape equals mines positions
-     *
+     * check witch key is clicked
+     * ,redraw the shape with new position
+     * and check if the position of this shape equals mines positions
      */
 
     private void play() {
@@ -125,47 +130,48 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         switch (directions) {
             case UP: // if directions equals UP decrease y axis by 1
                 if (y_axis > 0) {
-                    y_axis--;
+                    y_axis -= 10;
                 }
                 break;
             case DOWN: // if directions equals DOWN increase y axis by 1
                 if (y_axis < height)
-                    y_axis++;
+                    y_axis += 10;
                 break;
             case LEFT: //if directions equals LEFT decrease x axis by 1
                 if (x_axis > 0)
-                    x_axis--;
+                    x_axis -= 10;
 
                 break;
             case RIGHT: //if directions equals RIGHT increase x axis by 1
                 if (x_axis < width)
-                    x_axis++;
+                    x_axis += 10;
 
 
         }
 
         directions = Direction.NON; // reassign non to directions
         for (Position<Integer, Integer> position : minePosition) { // iterate over mine positions
-            if (position.getX_axis() == x_axis && position.getY_axis() == y_axis) { // check if shape's position equals any mine's positions then stop the game
+            if (abs(position.getX_axis() - x_axis) <= 4 && abs(position.getY_axis() - y_axis) <= 4) { // check if shape's position equals any mine's positions then stop the game
 
                 stop();
             }
 
         }
-        if ((x_axis == 0 && y_axis == 0) || (x_axis == 55 && y_axis == 0) || (x_axis == 0 && y_axis == 55) || (x_axis == 55 && y_axis == 55)) { // check if shape's position equals any corner's position then stop game
+        if ((x_axis <= 4 && y_axis <= 4) || (x_axis >= 380 && x_axis <= 400 && y_axis <= 5) || (x_axis <= 5 && y_axis >= 380 && y_axis <= 400) || (x_axis >= 380 && y_axis >= 380)) { // check if shape's position equals any corner's position then stop game
 
             stop();
         }
+
         shape = new Shape(new Position(x_axis, y_axis), 10, 10);
         corner1 = new Shape(new Position(0, 0), 7, 7);
-        corner2 = new Shape(new Position(55, 0), 7, 7);
-        corner3 = new Shape(new Position(0, 55), 7, 7);
-        corner4 = new Shape(new Position(55, 55), 7, 7);
+        corner2 = new Shape(new Position(385, 0), 7, 7);
+        corner3 = new Shape(new Position(0, 385), 7, 7);
+        corner4 = new Shape(new Position(385, 385), 7, 7);
 
     }
 
     /**
-     *  start game
+     * start game
      */
     private void start() {
         thread = new Thread(this);
@@ -179,8 +185,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
      */
     private void setMinePosition() {
         for (int i = 0; i < 40; i++) { // create 40 mines with random position
-            int x = 1 + random.nextInt(54);
-            int y = 1 + random.nextInt(54);
+            int x = 1 + random.nextInt(350);
+            int y = 1 + random.nextInt(350);
             minePosition.add(new Position<>(x, y));
         }
     }

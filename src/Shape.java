@@ -13,6 +13,6 @@ public class Shape {
 
     public void draw(Graphics g, Color color) { // draw shape
         g.setColor(color);
-        g.fillRect(Xax * width, Yax * height, 2 * width, 2 * height);
+        g.fillRect(Xax, Yax, 2 * width, 2 * height);
     }
 }

@@ -2,8 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,16 +9,14 @@ import java.util.Random;
 import static java.lang.Math.abs;
 
 
-public class GamePanel extends JPanel implements Runnable, KeyListener {
+public class GamePanel extends JPanel implements KeyListener {
 
 
     private int width, height; // width and height of panel
-    private Thread thread;
-    private boolean running = false;
     private Random random;
     List<Position<Integer, Integer>> minePosition; // list of mine position
     Shape shape, corner1, corner2, corner3, corner4;
-
+    private boolean gameOver = false;
 
     enum Direction {NON, LEFT, RIGHT, UP, DOWN}
 
@@ -35,8 +31,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         random = new Random();
         setFocusable(true);
         addKeyListener(this);
+        setMinePosition();
+        // shape = new Shape(new Position())
         setPreferredSize(new Dimension(width, height)); // set size of panel
-        start(); // start game
+
     }
 
 
@@ -47,6 +45,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
      */
     @Override
     public void paint(Graphics graphics) {
+        play();
+
         graphics.clearRect(0, 0, width, height); // clear screen
         graphics.setColor(Color.white); // set color to white
         graphics.fillRect(0, 0, width, height); // fill screen with white color
@@ -66,7 +66,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         corner2.draw(graphics, Color.GREEN);
         corner3.draw(graphics, Color.GREEN);
         corner4.draw(graphics, Color.GREEN);
-        if (!running) // if game not running
+        if (gameOver) // if game not running
             for (Position<Integer, Integer> position : minePosition) { // iterate over mines positions
                 Shape shape = new Shape(position, 10, 10); // crate new shape with width and height 10px
                 shape.draw(graphics, Color.BLACK); // draw this shape
@@ -85,38 +85,31 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
      */
     @Override
     public void keyPressed(KeyEvent e) {
+        if (!gameOver) {
+            switch (e.getKeyCode()) {// get key code
 
-        switch (e.getKeyCode()) { // get key code
-            case KeyEvent.VK_W:  // w key
-                directions = Direction.UP; // set directions to UP
-                break;
+                case KeyEvent.VK_W:  // w key
+                    directions = Direction.UP; // set directions to UP
+                    break;
 
-            case KeyEvent.VK_S: // s key
-                directions = Direction.DOWN; // set directions to Down
-                break;
-            case KeyEvent.VK_D: // d key
-                directions = Direction.RIGHT; // set directions to right
-                break;
-            case KeyEvent.VK_A:// a key
-                directions = Direction.LEFT; // set directions to left
-                break;
+                case KeyEvent.VK_S: // s key
+                    directions = Direction.DOWN; // set directions to Down
+                    break;
+                case KeyEvent.VK_D: // d key
+                    directions = Direction.RIGHT; // set directions to right
+                    break;
+                case KeyEvent.VK_A:// a key
+                    directions = Direction.LEFT; // set directions to left
+                    break;
 
-        }
+            }
+            repaint();
+        } else directions = Direction.NON;
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
 
-    }
-
-    // called while thread is running
-    @Override
-    public void run() {
-
-        while (running) {
-            play();
-            repaint();
-        }
     }
 
     /**
@@ -153,13 +146,13 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         for (Position<Integer, Integer> position : minePosition) { // iterate over mine positions
             if (abs(position.getX_axis() - x_axis) <= 4 && abs(position.getY_axis() - y_axis) <= 4) { // check if shape's position equals any mine's positions then stop the game
 
-                stop();
+                gameOver = true;
             }
 
         }
         if ((x_axis <= 4 && y_axis <= 4) || (x_axis >= 380 && x_axis <= 400 && y_axis <= 5) || (x_axis <= 5 && y_axis >= 380 && y_axis <= 400) || (x_axis >= 380 && y_axis >= 380)) { // check if shape's position equals any corner's position then stop game
 
-            stop();
+            gameOver = true;
         }
 
         shape = new Shape(new Position(x_axis, y_axis), 10, 10);
@@ -168,16 +161,6 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         corner3 = new Shape(new Position(0, 385), 7, 7);
         corner4 = new Shape(new Position(385, 385), 7, 7);
 
-    }
-
-    /**
-     * start game
-     */
-    private void start() {
-        thread = new Thread(this);
-        running = true;
-        setMinePosition();
-        thread.start(); // start the thread
     }
 
     /**
@@ -191,19 +174,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
     }
 
-    /**
-     * stop game
-     */
 
-    public void stop() {
-        running = false;
-        try {
-            thread.join(); // stop thread
-        } catch (InterruptedException e) {
-
-            e.printStackTrace();
-        }
-    }
 
     public class Position<first, second> {
         private first x_axis;
